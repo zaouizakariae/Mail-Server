@@ -29,7 +29,7 @@ Postfix is a mail transfer agent (MTA) which is the responsible software for del
 ```cpp
 sudo systemctl status postfix
 ```
-
+![Capture d’écran 2022-01-11 210503](https://user-images.githubusercontent.com/85891554/149013420-e699221f-d64f-46d4-a204-02817d6cf07f.png)
 # Testing Postfix Mail Server on Ubuntu
 to check that our mail server is connecting on port 25 we use the following command
 ```cpp
@@ -51,4 +51,67 @@ sudo apt-get install dovecot-imapd dovecot-pop3d
 after the installation we restart the Dovecot service using the following command
 ```cpp
 sudo systemctl restart dovecot
+sudo systemctl status dovecot
 ```
+![Capture d’écran 2022-01-11 210542](https://user-images.githubusercontent.com/85891554/149013434-4d8f07b8-cd54-4bce-a008-6e450573ef5b.png)
+# Installing Roundcube Webmail in Ubuntu
+Roundcube is the webmail server that we will be using to manage emails on our server
+```cpp
+wget https://github.com/roundcube/roundcubemail/releases/download/1.4.8/roundcubemail-1.4.8.tar.gz
+tar -xvf roundcubemail-1.4.8.tar.gz
+sudo mv roundcubemail-1.4.8 /var/www/html/roundcubemail
+sudo chown -R www-data:www-data /var/www/html/roundcubemail/
+sudo chmod 755 -R /var/www/html/roundcubemail/
+```
+we need to create a new database and user for Roundcube and grant all permission to a new user to write to the database
+```cpp
+sudo mysql -u root
+
+MariaDB [(none)]> CREATE DATABASE roundcube DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+MariaDB [(none)]> CREATE USER roundcubeuser@localhost IDENTIFIED BY 'password';
+MariaDB [(none)]> GRANT ALL PRIVILEGES ON roundcube.* TO roundcubeuser@localhost;
+MariaDB [(none)]> flush privileges;
+MariaDB [(none)]> quit;
+```
+now we will import the initial tables to the Roundcube database
+```cpp
+sudo mysql roundcube < /var/www/html/roundcubemail/SQL/mysql.initial.sql
+```
+# Create an Apache Virtual Host for Roundcube Webmail
+Create an apache virtual host for Roundcube webmail
+```cpp
+sudo nano /etc/apache2/sites-available/roundcube.conf
+```
+we will add the following configuration in it
+```cpp
+ <VirtualHost *:80>
+  ServerName taddist.com
+  DocumentRoot /var/www/html/roundcubemail/
+
+  ErrorLog ${APACHE_LOG_DIR}/roundcube_error.log
+  CustomLog ${APACHE_LOG_DIR}/roundcube_access.log combined
+
+  <Directory />
+    Options FollowSymLinks
+    AllowOverride All
+  </Directory>
+
+  <Directory /var/www/html/roundcubemail/>
+    Options FollowSymLinks MultiViews
+    AllowOverride All
+    Order allow,deny
+    allow from all
+  </Directory>
+
+</VirtualHost>
+````
+we will enable this virtual host and reload the apache for the changes
+```cpp
+sudo a2ensite roundcube.conf
+sudo systemctl reload apache2
+```
+now we can access the webmail by going to http://taddist.com/roundcubemail/installer/
+
+Next, go to the Database settings and add the database details
+
+After making all the changes, create a config.inc.php file
