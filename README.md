@@ -111,7 +111,30 @@ sudo a2ensite roundcube.conf
 sudo systemctl reload apache2
 ```
 now we can access the webmail by going to http://taddist.com/roundcubemail/installer/
-
+![Capture d’écran 2022-01-11 213207](https://user-images.githubusercontent.com/85891554/149016970-2f75c9f2-c2cb-4780-b1cd-800fa6533df8.png)
 Next, go to the Database settings and add the database details
-
+![Capture d’écran 2022-01-11 212652](https://user-images.githubusercontent.com/85891554/149016989-393924ea-0cae-4a54-aee5-875a64bc31e3.png)
 After making all the changes, create a config.inc.php file
+![Capture d’écran 2022-01-11 213003](https://user-images.githubusercontent.com/85891554/149016997-9f99e560-e8bb-47a5-8fa9-5fbdf170ba71.png)
+After finishing the installation and the final we need to delete the installer folder
+```cpp
+sudo rm /var/www/html/roundcubemail/installer/ -r
+```
+# Creating Mail Users
+In order to start using the Roundcube webmail, we will have to create a new user
+```cpp
+sudo useradd zaza
+```
+
+```cpp
+sudo passwd zaza12347
+```
+# Final test
+Now we go to the login page and enter the user name and the password of the user
+```cpp
+http://taddist.com/roundcubemail/
+```
+
+here is the user interface
+
+# THE END_______
